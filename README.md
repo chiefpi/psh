@@ -45,3 +45,7 @@ Redirection
 Pipe
 
 Background
+
+## BUGs
+
+Process runs self.exit (also a member)
