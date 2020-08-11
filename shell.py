@@ -3,19 +3,22 @@ import subprocess
 from multiprocessing import Process
 
 class Shell(object):
+
+    builtin_cmds = {'bg', 'cd', 'clr', 'dir', 'echo', 'exec', 'exit', 'environ', 'fg', 'help', 'jobs', 'pwd', 'quit', 'set', 'shift', 'test', 'time', 'umask', 'unset'}
+    prompt = '> '
+
     def __init__(self):
-        self.prompt = 'psh> '
-        self.exit = False
-        while not self.exit:
-            cmd = input(self.prompt)
-            self.interpret(cmd)
+        self.end = False
+        while not self.end:
+            command = input('[{}]{}'.format(os.getcwd(), self.prompt))
+            self.interpret(command)
 
     def interpret(self, command):
         """Interprets command.
         Args:
-            cmd (string)
+            command (string)
         """
-        cmds = command.split('|')
+        cmds = [cmd for cmd in command.split('|') if cmd]
         if len(cmds) == 0:
             return
 
@@ -41,7 +44,11 @@ class Shell(object):
             os.close(fdout)
 
             # executes commands recursively
-            self.execute_one(cmds[0])
+            try:
+                self.execute_one(cmds[0])
+            except NotImplementedError:
+                print('psh: no such command: {}'.format(cmds[0].split()[0]))
+
             if len(cmds) > 1:
                 interpret_pipe(cmds[1:], fdin)
 
@@ -56,26 +63,63 @@ class Shell(object):
         os.close(sout)
 
     def execute_one(self, cmd):
-        #try:
         tokens = cmd.split()
-        p = Process(target=eval('self.{}'.format(tokens[0])), args=tokens[1:])
-        p.start()
-        p.join()
+
+        head = tokens[0]
+        if head not in self.builtin_cmds:
+            raise NotImplementedError
+        args = ','.join(["'{}'".format(t) for t in tokens[1:]])
+
+        eval('self.{}({})'.format(head, args))
+        #p = Process(target=eval('self.{}'.format(tokens[0])), args=tokens[1:])
+        #p.start()
+        #p.join()
         #except Exception:
         #    print('psh: cmd not found: {}'.format(cmd))
         
     def cd(self, path):
         try:
             os.chdir(os.path.abspath(path))
-        except Exception:
+        except FileNotFoundError:
             print('cd: no such directory: {}'.format(path))
 
-    def ls(self):
-        subprocess.run('ls')
+    def clr(self):
+        os.system('clear')
+
+    def dir(self, path='.'):
+        try:
+            print('  '.join(os.listdir(path)))
+        except FileNotFoundError:
+            print('dir: no such directory: {}'.format(path))
+        except NotADirectoryError:
+            print('dir: not a directory: {}'.format(path))
+
+    def echo(self, *comment):
+        print(' '.join(comment))
+
+    def exec(self):
+        pass
+
+    def exit(self):
+        self.end = True
+
+    def environ(self):
+        print(os.environ) 
+
+    def fg(self):
+        pass
+
+    def help(self):
+        pass
+
+    def jobs(self):
+        pass
+
+    def pwd(self):
+        print(os.getcwd())
 
     def quit(self):
-        print('quit')
-        self.exit = True
+        self.end = True
 
 
 if __name__ == '__main__':
