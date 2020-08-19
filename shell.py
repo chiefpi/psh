@@ -1,24 +1,53 @@
 import os
-import subprocess
+from inspect import getmembers, isfunction
 from multiprocessing import Process
+
+from parse import AST
+import lib
+
 
 class Shell(object):
 
-    builtin_cmds = {'bg', 'cd', 'clr', 'dir', 'echo', 'exec', 'exit', 'environ', 'fg', 'help', 'jobs', 'pwd', 'quit', 'set', 'shift', 'test', 'time', 'umask', 'unset'}
+    functions = {n:f for n, f in getmembers(lib, isfunction)}
+    functions['help'] = functions['helpsh']
     prompt = '> '
 
     def __init__(self):
         self.end = False
         while not self.end:
-            command = input('[{}]{}'.format(os.getcwd(), self.prompt))
-            self.interpret(command)
+            text = input('[{}]{}'.format(os.getcwd(), self.prompt))
+            self.interpret(text)
 
-    def interpret(self, command):
+    def interpret(self, text):
+        ast = AST(text)
+        self.execute(ast.root)
+
+    def execute(self, root):
+        for pipe in root:
+            self.execute_pipe(pipe)
+
+    def execute_pipe(self, root):
+        for command in root:
+            self.execute_command(command)
+
+    def execute_command(self, command):
+        try:
+            self.execute_args(command.args)
+        except NotImplementedError:
+            print('psh: no such command: {}'.format(command.args[0]))
+
+    def execute_args(self, args):
+        head = args[0]
+        if head not in self.functions:
+            raise NotImplementedError
+        self.end = self.functions[head](*args[1:]) is not None
+
+    def interpret_old(self, command):
         """Interprets command.
         Args:
             command (string)
         """
-        cmds = [cmd for cmd in command.split('|') if cmd]
+        cmds = [cmd.strip() for cmd in command.split('|') if cmd]
         if len(cmds) == 0:
             return
 
@@ -61,65 +90,6 @@ class Shell(object):
         os.dup2(sout, 1)
         os.close(sin)
         os.close(sout)
-
-    def execute_one(self, cmd):
-        tokens = cmd.split()
-
-        head = tokens[0]
-        if head not in self.builtin_cmds:
-            raise NotImplementedError
-        args = ','.join(["'{}'".format(t) for t in tokens[1:]])
-
-        eval('self.{}({})'.format(head, args))
-        #p = Process(target=eval('self.{}'.format(tokens[0])), args=tokens[1:])
-        #p.start()
-        #p.join()
-        #except Exception:
-        #    print('psh: cmd not found: {}'.format(cmd))
-        
-    def cd(self, path):
-        try:
-            os.chdir(os.path.abspath(path))
-        except FileNotFoundError:
-            print('cd: no such directory: {}'.format(path))
-
-    def clr(self):
-        os.system('clear')
-
-    def dir(self, path='.'):
-        try:
-            print('  '.join(os.listdir(path)))
-        except FileNotFoundError:
-            print('dir: no such directory: {}'.format(path))
-        except NotADirectoryError:
-            print('dir: not a directory: {}'.format(path))
-
-    def echo(self, *comment):
-        print(' '.join(comment))
-
-    def exec(self):
-        pass
-
-    def exit(self):
-        self.end = True
-
-    def environ(self):
-        print(os.environ) 
-
-    def fg(self):
-        pass
-
-    def help(self):
-        pass
-
-    def jobs(self):
-        pass
-
-    def pwd(self):
-        print(os.getcwd())
-
-    def quit(self):
-        self.end = True
 
 
 if __name__ == '__main__':
