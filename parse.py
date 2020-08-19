@@ -1,5 +1,5 @@
 def clear_split(text, d):
-    return [s.strip() for s in text.split(d)]
+    return [s.strip() for s in text.split(d) if s.strip()]
 
 
 class Command(object):
@@ -10,10 +10,15 @@ class Command(object):
         self.rapp = rapp
 
     def __repr__(self):
-        return 'Command(args: {}, in: {}, out: {}, app: {})'.format(self.args, self.rin, self.rout, self.rapp)
+        # return 'Command(args: {}, in: {}, out: {}, app: {})'.format(self.args, self.rin, self.rout, self.rapp)
+        return ' '.join(self.args)
 
 
 class AST(object):
+    """
+    Attributes:
+        root (list of tuple of (list of Command, bool))
+    """
     def __init__(self, text):
         self.root = self.parse(text)
 
@@ -26,8 +31,13 @@ class AST(object):
     def parse(self, text):
         root = []
         pipelines = clear_split(text, '&')
-        for pipe in pipelines:
-            root.append(self.parse_pipe(pipe))
+        pipe_num = len(pipelines)
+        bg_num = text.count('&')
+        for i, pipe in enumerate(pipelines):
+            if i == pipe_num - 1 and pipe_num != bg_num:
+                root.append((self.parse_pipe(pipe), False))
+            else:
+                root.append((self.parse_pipe(pipe), True))
         return root
 
     def parse_pipe(self, text):

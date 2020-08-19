@@ -64,7 +64,7 @@ def exit():
         exit
 
     DESCRIPTION
-        Exit from the shell.
+        Exit from shell.
     """
     return True
 
@@ -76,12 +76,15 @@ def environ():
     DESCRIPTION
         List all environment variables.
     """
-    print(os.environ) 
+    pass
 
 def fg():
     """
     SYNOPSIS
+        fg
+
     DESCRIPTION
+        Move job to the foreground.
     """
     pass
 
@@ -98,7 +101,10 @@ def helpsh():
 def jobs():
     """
     SYNOPSIS
+        jobs
+
     DESCRIPTION
+        Display status of jobs.
     """
     pass
 
@@ -118,7 +124,7 @@ def quit():
         quit
 
     DESCRIPTION
-        Quit the current shell.
+        Quit shell.
     """
     return True
 
@@ -130,12 +136,15 @@ def set(var, val):
     DESCRIPTION
         Set the value of environment variables.
     """
-    os.environ[var] = val
+    pass
 
 def shift(self):
     """
     SYNOPSIS
+        shift [n]
+
     DESCRIPTION
+        Shift positional parameters.
     """
     pass
 
@@ -146,7 +155,7 @@ def test(self):
     """
     pass
 
-def time(function, args=(), kwargs={}):
+def time(function, *args):
     """
     SYNOPSIS
         time COMMAND
@@ -159,7 +168,7 @@ def time(function, args=(), kwargs={}):
 
     start_time, start_resources = timestamp(), getrusage(RUSAGE_SELF)
     try:
-        eval(function)(*args, **kwargs)
+        eval(function)(*args)
     except NameError:
         print('time: no such command: {}'.format(function))
     end_resources, end_time = getrusage(RUSAGE_SELF), timestamp()
@@ -192,4 +201,4 @@ def unset(var):
     DESCRIPTION
         Unset an environment variable.
     """
-    del os.environ[var]
+    pass

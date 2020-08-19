@@ -4,31 +4,32 @@ Command line interpreter implemented in Python.
 
 ## Supported commands
 
-* cd <directory>
+* cd [dir]
 * pwd
-* time
+* time command
 * clr
-* dir <directory>
+* dir [dir]
 * environ
-* echo <comment>
+* echo [comment]
 * help
 * quit
 * bg
 * fg
 * jobs
-* set
+* set var val
 * shift
 * test
-* umask
-* unset
+* umask [mask]
+* unset var
 
 ## Features
 
-Redirection
+Redirection: for built-in commands
 
-Pipe
+Pipeline
 
 Background
 
 ## BUGs
+
 
