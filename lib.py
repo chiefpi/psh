@@ -1,6 +1,16 @@
 import os
 import sys
 
+def bg(jid):
+    """
+    SYNOPSIS
+        bg jid
+
+    DESCRIPTION
+        Move job to the background.
+    """
+    pass
+
 def cd(path='.'):
     """
     SYNOPSIS

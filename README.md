@@ -30,6 +30,8 @@ Pipeline
 
 Background
 
+Batchfile: `python shell.py BATCHFILE`
+
 ## BUGs
 
 

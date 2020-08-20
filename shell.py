@@ -1,7 +1,7 @@
 import os
 import sys
 from inspect import getmembers, isfunction
-from threading import Thread
+from multiprocessing import Process
 import subprocess
 
 from parse import AST
@@ -14,6 +14,8 @@ class Shell(object):
     prompt = '> '
     functions = {n:f for n, f in getmembers(lib, isfunction)}
     functions['help'] = functions['helpsh']
+
+    env_job_function_names = ['environ', 'set', 'unset', 'jobs']
 
     def environ(self):
         for k, v in self.env.items():
@@ -28,22 +30,22 @@ class Shell(object):
     def jobs(self):
         print(self.joblist)
 
-    def fg(self, jid):
-        pass
-        
-    def __init__(self):
-        self.functions['environ'] = self.environ
-        self.functions['set'] = self.set
-        self.functions['unset'] = self.unset
-        self.functions['jobs'] = self.jobs
+    def __init__(self, batch_file=None):
+        for n in self.env_job_function_names:
+            self.functions[n] = getattr(self, n)
         
         self.env = {}
         self.joblist = JobList()
-        self.end = False
-        while not self.end:
-            self.joblist.check()
-            text = input('[{}]{}'.format(os.getcwd(), self.prompt))
-            self.interpret(text)
+        if batch_file:
+            texts = open(batch_file, 'r').readlines()
+            for text in texts:
+                self.interpret(text)
+        else:
+            self.end = False
+            while not self.end:
+                self.joblist.check()
+                text = input('[{}]{}'.format(os.getcwd(), self.prompt))
+                self.interpret(text)
 
     def interpret(self, text):
         ast = AST(text)
@@ -52,9 +54,9 @@ class Shell(object):
     def execute(self, root):
         for pipe, bg in root:
             if bg:
-                thread = Thread(target=self.execute_pipe, args=(pipe,), daemon=True)
-                thread.start()
-                self.joblist.add_job(Job(pipe, thread))
+                subp = Process(target=self.execute_pipe, args=(pipe,), daemon=True)
+                subp.start()
+                self.joblist.add_job(Job(pipe, subp))
             else:
                 self.execute_pipe(pipe)
 
@@ -123,4 +125,10 @@ class Shell(object):
 
 
 if __name__ == '__main__':
-    psh = Shell()
+    argc = len(sys.argv) 
+    if argc == 2:
+        Shell(sys.argv[1])
+    elif argc  == 1:
+        Shell()
+    else:
+        print('unknown usage')
