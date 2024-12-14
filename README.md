@@ -4,34 +4,52 @@ Command line interpreter implemented in Python.
 
 ## Supported commands
 
-* cd [dir]
-* pwd
-* time command
-* clr
-* dir [dir]
-* environ
-* echo [comment]
-* help
-* quit
-* bg
-* fg
-* jobs
-* set var val
-* shift
-* test
-* umask [mask]
-* unset var
+Built-in commands
+
+- bg
+- cd [dir]
+- pwd
+- time command
+- clr
+- dir [dir]
+- environ
+- echo [comment]
+- help
+- quit
+- fg
+- jobs
+- set var val
+- shift
+- test
+- umask [mask]
+- unset var
+
+Use `help` for more detail.
+
+Program execution from the shell is supported without doubt.
 
 ## Features
 
-Redirection: for built-in commands
+Redirection (works only for built-in commands)
+
+```sh
+echo hello > hello.txt
+```
 
 Pipeline
 
-Background
+```sh
+cat shell.py | wc
+```
 
-Batchfile: `python shell.py BATCHFILE`
+Background execution
 
-## BUGs
+```sh
+sleep 10 & sleep 5 &
+```
 
+Batchfile
 
+```sh
+python shell.py BATCHFILE
+```
