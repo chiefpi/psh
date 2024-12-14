@@ -1,3 +1,6 @@
+# Some methods have empty implementation here because they are implemented in
+# `shell.py`. They are listed here only for documentation purposes.
+
 import os
 import sys
 
