@@ -1,6 +1,7 @@
 import os
 import sys
 from inspect import getmembers, isfunction
+import multiprocessing
 from multiprocessing import Process
 import subprocess
 
@@ -33,7 +34,7 @@ class Shell(object):
     def __init__(self, batch_file=None):
         for n in self.env_job_function_names:
             self.functions[n] = getattr(self, n)
-        
+
         self.env = {}
         self.joblist = JobList()
         if batch_file:
@@ -125,7 +126,10 @@ class Shell(object):
 
 
 if __name__ == '__main__':
-    argc = len(sys.argv) 
+    # Enforces fork as the start method on macOS
+    multiprocessing.set_start_method('fork')
+
+    argc = len(sys.argv)
     if argc == 2:
         Shell(sys.argv[1])
     elif argc  == 1:
