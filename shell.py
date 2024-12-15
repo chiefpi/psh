@@ -5,7 +5,7 @@ import multiprocessing
 from multiprocessing import Process
 import subprocess
 
-from parse import AST
+from parse import AST, ParseError
 from job import Job, JobList
 import lib
 
@@ -37,6 +37,7 @@ class Shell(object):
 
         self.env = {}
         self.joblist = JobList()
+
         if batch_file:
             texts = open(batch_file, 'r').readlines()
             for text in texts:
@@ -44,13 +45,17 @@ class Shell(object):
         else:
             self.end = False
             while not self.end:
+                # TODO: Notify job completion asynchronously
                 self.joblist.check()
                 text = input(f'[{os.getcwd()}]{self.prompt}')
                 self.interpret(text)
 
     def interpret(self, text):
-        ast = AST(text)
-        self.execute(ast.root)
+        try:
+            ast = AST(text)
+            self.execute(ast.root)
+        except ParseError as err:
+            print(err)
 
     def execute(self, root):
         for pipe, bg in root:

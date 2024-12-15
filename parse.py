@@ -9,6 +9,16 @@ class Command(object):
         return ' '.join(self.args)
 
 
+class ParseError(Exception):
+    def __init__(self, pos, ch):
+        self.pos = pos
+        self.ch = ch
+        super().__init__(self.__str__())
+
+    def __str__(self):
+        return f'Parse error: \'{self.ch}\' at {self.pos}'
+
+
 class AST(object):
     """
     Attributes:
@@ -21,30 +31,41 @@ class AST(object):
         return str(self.root)
 
     @staticmethod
-    def clear_split(text, d):
-        return [s.strip() for s in text.split(d) if s.strip()]
+    def clear_split(text, delimiter, allow_delimiter_end):
+        # seg delim seg delim [seg]
+        if not text:
+            return []
+
+        segs = [] # (seg, ends_with_delimiter)
+        seg_start = 0
+        text = text.strip()
+        for seg_end, ch in enumerate(text):
+            if ch == delimiter:
+                seg = text[seg_start:seg_end].strip()
+                if not seg:
+                    raise ParseError(seg_end, ch)
+                segs.append((seg, True))
+                seg_start = seg_end + 1
+
+        if seg_start > seg_end:
+            # The text ends with the delimiter.
+            if not allow_delimiter_end:
+                raise ParseError(seg_end, delimiter)
+        else:
+            # The text ends with a segment.
+            segs.append((text[seg_start:].strip(), False))
+
+        return segs
 
     @staticmethod
     def parse(text):
-        root = []
-        # FIXME
-        pipelines = AST.clear_split(text, '&')
-        pipe_num = len(pipelines)
-        bg_num = text.count('&')
-        for i, pipe in enumerate(pipelines):
-            if i == pipe_num - 1 and pipe_num != bg_num:
-                root.append((AST.parse_pipe(pipe), False))
-            else:
-                root.append((AST.parse_pipe(pipe), True))
-        return root
+        pipes = AST.clear_split(text, '&', True)
+        return [(AST.parse_pipe(pipe), bg) for pipe, bg in pipes]
 
     @staticmethod
     def parse_pipe(text):
-        root = []
-        commands = AST.clear_split(text, '|')
-        for command in commands:
-            root.append(AST.parse_command(command))
-        return root
+        commands = AST.clear_split(text, '|', False)
+        return [AST.parse_command(command) for command, _ in commands]
 
     @staticmethod
     def parse_command(text):
@@ -53,7 +74,7 @@ class AST(object):
         args = []
         rin, rout, rapp = None, None, None
         fin, fout, fapp = False, False, False
-        for i, token in enumerate(tokens):
+        for token in tokens:
             if token == '<':
                 fin = True
             elif fin:
