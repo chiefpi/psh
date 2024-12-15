@@ -4,7 +4,7 @@ class Job(object):
         self.thread = thread
 
     def __repr__(self):
-        return '{}    {}'.format(self.status(), self.name)
+        return f'{self.status(): <10}{self.name}'
 
     def done(self):
         return not self.thread.is_alive()
@@ -18,7 +18,7 @@ class JobList(object):
         self.jobs = {}
 
     def __repr__(self):
-        return '\n'.join(['[{}] {}'.format(jid, job) for jid, job in self.jobs.items()])
+        return '\n'.join([f'[{jid}] {job}' for jid, job in self.jobs.items()])
 
     def add_job(self, job):
         self.jobs[len(self.jobs)] = job
@@ -30,7 +30,7 @@ class JobList(object):
         jids_done = []
         for jid, job in self.jobs.items():
             if job.done():
-                print('[{}] {}'.format(jid, job))
+                print(f'[{jid}] {job}')
                 jids_done.append(jid)
         for jid in jids_done:
             self.del_job(jid)

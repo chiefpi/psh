@@ -20,7 +20,7 @@ class Shell(object):
 
     def environ(self):
         for k, v in self.env.items():
-            print('{}={}'.format(k, v))
+            print(f'{k}={v}')
 
     def set(self, var, val):
         self.env[var] = val
@@ -45,7 +45,7 @@ class Shell(object):
             self.end = False
             while not self.end:
                 self.joblist.check()
-                text = input('[{}]{}'.format(os.getcwd(), self.prompt))
+                text = input(f'[{os.getcwd()}]{self.prompt}')
                 self.interpret(text)
 
     def interpret(self, text):
@@ -117,12 +117,12 @@ class Shell(object):
             try:
                 subprocess.run(args)
             except FileNotFoundError:
-                print('psh: no such command: {}'.format(head))
+                print(f'psh: no such command: {head}')
         else:
             try:
                 self.end = self.functions[head](*args[1:]) is not None
             except TypeError:
-                print('{}: invalid args length'.format(head))
+                print(f'{head}: invalid args length')
 
 
 if __name__ == '__main__':

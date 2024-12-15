@@ -25,9 +25,9 @@ def cd(path='.'):
     try:
         os.chdir(os.path.abspath(path))
     except FileNotFoundError:
-        print('cd: no such directory: {}'.format(path))
+        print(f'cd: no such directory: {path}')
     except NotADirectoryError:
-        print('cd: not a directory: {}'.format(path))
+        print(f'cd: not a directory: {path}')
 
 def clr():
     """
@@ -50,9 +50,9 @@ def dir(path='.'):
     try:
         print('  '.join(os.listdir(path)))
     except FileNotFoundError:
-        print('dir: no such directory: {}'.format(path))
+        print(f'dir: no such directory: {path}')
     except NotADirectoryError:
-        print('dir: not a directory: {}'.format(path))
+        print(f'dir: not a directory: {path}')
 
 def echo(*comment):
     """
@@ -183,13 +183,13 @@ def time(function, *args):
     try:
         eval(function)(*args)
     except NameError:
-        print('time: no such command: {}'.format(function))
+        print(f'time: no such command: {function}')
     end_resources, end_time = getrusage(RUSAGE_SELF), timestamp()
 
     print()
-    print('real {:.5f}s'.format(end_time - start_time))
-    print('user {:.5f}s'.format(end_resources.ru_utime - start_resources.ru_utime))
-    print('sys  {:.5f}s'.format(end_resources.ru_stime - start_resources.ru_stime))
+    print(f'real {(end_time - start_time):.5f}s')
+    print(f'user {(end_resources.ru_utime - start_resources.ru_utime):.5f}s')
+    print(f'sys  {(end_resources.ru_stime - start_resources.ru_stime):.5f}s')
 
 def umask(mask=None):
     """
@@ -203,7 +203,7 @@ def umask(mask=None):
         os.umask(int(mask, 8))
     else:
         omask = os.umask(0)
-        print('{:04o}'.format(omask))
+        print(f'{omask:04o}')
         os.umask(omask)
 
 def unset(var):
